@@ -3,6 +3,7 @@
 <!-- -----------------------------------------------------------------------------
     STYLE
 ------------------------------------------------------------------------------- -->
+
 <style>
 .rd{
     border: 1px solid lightgray;
@@ -36,13 +37,23 @@ img {
     max-height: 100%;
     display: block;
 }    
+#map { height: 350px; }
 
 </style>
+
 
 <!-- -----------------------------------------------------------------------------
     HTML
 ------------------------------------------------------------------------------- -->
-<div class="container" style ="padding: 10px; width: 1024px;" >
+<div class="container" style="padding: 15px">
+    <p>Contact Us To Get This In Your City! #SmartCity </p>
+    <div id="map" style="border-radius: 15px; overflow: hidden;"></div>
+</div>
+
+
+<!-- <div class="container" >
+
+ 
     <h4>How to use our program:</h4>
     <p>Note) This is our demo product, for our official product that can analyze video feed in real-time please contact our team. </p>
     <ol>
@@ -52,7 +63,7 @@ img {
         <li>Preview picutre with identified potholes</li>
 
     </ol>
-</div>
+</div> -->
 
 <div class="container" style ="padding: 10px; width: 1024px;" >
     <div class="row">
@@ -90,6 +101,22 @@ img {
     HTML
 ------------------------------------------------------------------------------- -->
 <script>
+
+/*Map */
+var seattlelatlng = L.latLng(47.608013, -122.335167);
+var map = L.map('map').setView(seattlelatlng, 12);
+
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+L.marker(seattlelatlng).addTo(map)
+    .bindPopup('Use computer vision to automatically monitor potholes')
+    .openPopup();
+
+
+/* Handel file selection*/
 function myhandleFileSelect(id){
     var files = document.getElementById(id).files;
     
