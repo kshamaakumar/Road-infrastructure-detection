@@ -155,15 +155,21 @@ function handleUploadClick(url) {
         return;
     }
     var formData = new FormData($('form#fileupload')[0]);
+
     
     $.ajax({
         url: url,
         type: 'POST',
         data: formData,
+        responseType: 'arraybuffer',
         success: function(response) {
-            salert("Processed!! " + response.responseText, "btn-success", 2000);
-            console.log("++++++++++", response);
-            $('#status').html("<pre>" + response + "</pre>")
+            // Update the image tag with the modified image
+            var imgData = 'data:image/jpeg;base64,' + response.image_data;
+            alert(imgData)
+            $('#status').html("<pre>" + "Success!" + "</pre>");
+            $('#results').html(`<img class="img" src="${imgData}"/>`);
+            // $('#results').html(`<img class="img" src="/dynamic/${filename}"/>`);
+            
             
         },
         error: function(response) {
