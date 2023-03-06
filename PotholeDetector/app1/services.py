@@ -17,10 +17,52 @@ import io
 import base64
 from django.http import JsonResponse
 import concurrent.futures
+import re
+import json
+
 
 
 #--------------------------------------------------------------------------------------------------------
-# Working Code *
+# Checks queue for images
+@webapi("/app1/getPotholeQueue")
+def view_pothole_queue(request,  **kwargs):
+    # Directory containing the files to parse
+    directory = "PotholeQueue"
+
+    # List to hold parsed data for each file
+    data_list = []
+    
+    # Loop over all files in the directory
+    for filename in os.listdir(directory):
+        # Check if the file has a .jpg or .png extension
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            # Extract latitude, longitude, and datetime from the filename using a regular expression
+            match = re.match(r"seattle:(?P<latitude>-?\d+\.\d+)_(?P<longitude>-?\d+\.\d+)_(?P<datetime>\d{4}-\d{2}-\d{2}-\d{2}-\d{2})\.(jpg|png)", filename)
+            if match:
+                # Create a dictionary with the extracted values
+                data = {
+                    "latitude": float(match.group("latitude")),
+                    "longitude": float(match.group("longitude")),
+                    "datetime": match.group("datetime"),
+                    "image_type": match.group(4) # Add the image file type to the dictionary
+                }
+                
+                # Read the image file and encode it in base64 format
+                with open(os.path.join(directory, filename), "rb") as image_file:
+                    encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
+                
+                # Add the base64-encoded image to the dictionary
+                data["image"] = encoded_image
+                
+                # Add the dictionary to the list of parsed data
+                data_list.append(data)
+            else:
+                print(f"Invalid filename format for file {filename}.")
+        else:
+            print(f"File {filename} is not a supported image file type.")
+    
+    # Return the list of parsed data as a JSON string
+    return json.dumps(data_list)
 
 # Inferene Handeler
 def run_inference(image, model):
@@ -43,13 +85,13 @@ def run_inference(image, model):
     ssresults = ss.process()
     imout = img.copy()
     for e,result in enumerate(ssresults):
-        if e < 2000:
+        if e < 500:
             x,y,w,h = result
             timage = imout[y:y+h,x:x+w]
             resized = cv2.resize(timage, (224,224), interpolation = cv2.INTER_AREA)
             img = np.expand_dims(resized, axis=0)
             out= model_final.predict(img)
-            if out[0][0] > 0.50:
+            if out[0][0] > 0.60:
                 # Add Labels & Design To Rectangles 
                 label = "Pothole: " + str(round(out[0][0], 2))
                 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -98,7 +140,61 @@ def uploadfile( request,  **kwargs):
         else:
             print("error uploading file")
     return ret
-#--------------------------------------------------------------------------------------------------------    
+#--------------------------------------------------------------------------------------------------------
+@webapi("/app1/processall")
+def processfiles(request, **kwargs):
+    # Directory containing the files to parse
+    directory = "PotholeQueue"
+
+    # List to hold parsed data for each file
+    data_list = []
+
+    # Loop over all files in the directory
+    for filename in os.listdir(directory):
+        # Check if the file has a .jpg or .png extension
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            # Extract latitude, longitude, and datetime from the filename using a regular expression
+            match = re.match(r"seattle:(?P<latitude>-?\d+\.\d+)_(?P<longitude>-?\d+\.\d+)_(?P<datetime>\d{4}-\d{2}-\d{2}-\d{2}-\d{2})\.(jpg|png)", filename)
+            if match:
+                # Create a dictionary with the extracted values
+                data = {
+                    "latitude": float(match.group("latitude")),
+                    "longitude": float(match.group("longitude")),
+                    "datetime": match.group("datetime"),
+                    "image_type": match.group(4) # Add the image file type to the dictionary
+                }
+                
+                # Get the full path of the image file
+                image_path = os.path.join(directory, filename)
+                
+                # Call the run_inference function to generate a new image
+                VGG = os.path.join('app1', 'Models/VGG.h5')
+                new_image_path = run_inference(image_path, VGG)
+                
+                # Read the new image file and encode it in base64 format
+                with open(new_image_path, "rb") as image_file:
+                    encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
+                
+                # Add the base64-encoded image to the dictionary
+                data["image"] = encoded_image
+                
+                # Remove the old image from the PotholeQueue directory
+                #os.remove(image_path)
+                
+                # Add the dictionary to the list of parsed data
+                data_list.append(data)
+
+            else:
+                print(f"Invalid filename format for file {filename}.")
+        else:
+            print(f"File {filename} is not a supported image file type.")
+    
+    # Return the list of parsed data as a JSON string
+    return json.dumps(data_list)
+        
+
+
+#--------------------------------------------------------------------------------------------------------
 @webapi("/app1/processfile")
 def processfile(request, **kwargs):
     DESTDIR = os.path.join("..", "dynamic")
@@ -109,13 +205,7 @@ def processfile(request, **kwargs):
     image = Image.open(output_path)
     # Apply a blue tint to the image
     blue_image = image.copy()
-    # blue_image = blue_image.convert('RGB')
-    # pixels = blue_image.load()
-    # for i in range(blue_image.size[0]):
-    #     for j in range(blue_image.size[1]):
-    #         r, g, b = pixels[i, j]
-    #         b = min(255, int(b * 1.5))
-    #         pixels[i, j] = (r, g, b)
+
     # Save the modified image to a BytesIO object
     buffer = io.BytesIO()
     blue_image.save(buffer, format='JPEG')
