@@ -1,5 +1,5 @@
 <img width="108" alt="image" src="https://user-images.githubusercontent.com/91287933/225829636-0a8417f3-e44b-48ed-aa78-3218c20f3675.png">
-**Automated pothole detection and reporting system using Computer Vision
+# Automated pothole detection and reporting system using Computer Vision
 
 Abstract
 The rapid growth of remote sensing technologies, superior computing power, and machine learning techniques can help local governments to make pothole detection and reporting more efficient. We proposed an automated pothole detection and reporting system that utilizes an edge computing device installed on a garbage truck to detect and report potholes automatically. The device captures images of the road surface, and object detection techniques are used to detect potholes. If a pothole is detected, the device sends the road surface image, GPS latitude, and longitude to the server. The server counts the number of potholes and prioritizes them based on severity. The system provides a user-friendly interface for visualizing the potholes' locations on a map. The proposed system reduces the need for manual reporting, minimizes time and resources for road maintenance, and increases road safety. The system also positively impacts the environment by utilizing an existing garbage truck for data collection and minimizing unnecessary maintenance, reducing costs and carbon footprint. Overall, the proposed system provides a safer, more efficient, and environmentally friendly method for tracking road conditions.
@@ -19,6 +19,6 @@ In the final stage, we utilized Dr. Sada's Django template to create a UI that d
 <img width="380" alt="image" src="https://user-images.githubusercontent.com/91287933/225830108-7a5e5424-c722-4d28-8384-999947613e83.png">
 
 
-How to use the system 
+How to use the framework 
 
 
